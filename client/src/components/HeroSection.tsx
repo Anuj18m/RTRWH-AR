@@ -1,4 +1,4 @@
-import { ArrowRight, Droplets, Sprout } from "lucide-react";
+import { ArrowRight, Droplets, Sprout, BarChart3, IndianRupee, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
@@ -12,20 +12,55 @@ export default function HeroSection({ onSelectPath }: HeroSectionProps) {
     onSelectPath(path);
   };
 
+  const scrollToCalculator = () => {
+    const element = document.getElementById('calculator');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const scrollToAbout = () => {
+    const element = document.getElementById('about');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
-    <section className="relative">
-      {/* Hero Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-chart-1/5 to-chart-2/10 -z-10" />
+    <section id="hero" className="relative min-h-screen flex items-center">
+      {/* Enhanced Hero Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/15 via-chart-1/10 to-chart-2/15 -z-10" />
+      <div className="absolute inset-0 opacity-20 bg-pattern -z-10" />
       
       <div className="container mx-auto px-4 py-16 md:py-24">
-        {/* Hero Content */}
-        <div className="text-center max-w-4xl mx-auto mb-12">
-          <h1 className="text-4xl md:text-6xl font-semibold mb-6 bg-gradient-to-r from-primary to-chart-2 bg-clip-text text-transparent">
-            Rainwater Harvesting &amp; Artificial Recharge Assistant
+        {/* Enhanced Hero Content */}
+        <div className="text-center max-w-5xl mx-auto mb-16">
+          <h1 className="text-4xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-primary via-chart-1 to-chart-2 bg-clip-text text-transparent leading-tight">
+            Smart Rainwater Harvesting for Every Indian Home
           </h1>
-          <p className="text-xl md:text-2xl text-muted-foreground mb-8 leading-relaxed">
-            Calculate your rainwater harvesting potential, design storage systems, and get cost estimates with our comprehensive assistant.
+          <p className="text-xl md:text-3xl text-muted-foreground mb-12 leading-relaxed font-medium">
+            Government-compliant, data-driven, and simple to use.
           </p>
+          
+          {/* Hero CTAs */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
+            <Button
+              size="lg"
+              className="px-8 py-6 text-lg font-semibold hover:scale-105 transition-transform"
+              onClick={scrollToCalculator}
+            >
+              Start Calculator
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </Button>
+            <Button
+              variant="outline"
+              size="lg"
+              className="px-8 py-6 text-lg font-semibold hover:scale-105 transition-transform"
+              onClick={scrollToAbout}
+            >
+              Learn More
+            </Button>
+          </div>
         </div>
 
         {/* Path Selection Cards */}
@@ -61,6 +96,40 @@ export default function HeroSection({ onSelectPath }: HeroSectionProps) {
               </Button>
             </div>
           </Card>
+        </div>
+
+        {/* Quick Product Info Section */}
+        <div id="calculator" className="mt-16 pt-16">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Smart Solutions for Water Conservation</h2>
+            <p className="text-lg text-muted-foreground">Comprehensive tools for modern rainwater management</p>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto mb-16">
+            <Card className="p-6 text-center hover-elevate transition-all duration-300 group">
+              <div className="w-16 h-16 bg-chart-1 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                <BarChart3 className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold mb-3">📊 Rainwater Potential</h3>
+              <p className="text-muted-foreground">Know how much rainwater you can capture annually with precise calculations based on your location and roof specifications.</p>
+            </Card>
+            
+            <Card className="p-6 text-center hover-elevate transition-all duration-300 group">
+              <div className="w-16 h-16 bg-chart-2 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                <Droplets className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold mb-3">💧 Artificial Recharge</h3>
+              <p className="text-muted-foreground">Design recharge pits and evaluate feasibility with scientific methodology and soil-specific infiltration rates.</p>
+            </Card>
+            
+            <Card className="p-6 text-center hover-elevate transition-all duration-300 group">
+              <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                <IndianRupee className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold mb-3">💰 Cost & Savings</h3>
+              <p className="text-muted-foreground">Get budget options with detailed ROI analysis and payback period calculations for informed decision making.</p>
+            </Card>
+          </div>
         </div>
 
         {/* Trust Indicators */}

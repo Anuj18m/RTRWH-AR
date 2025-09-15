@@ -1,11 +1,19 @@
-import { Droplets, Menu, Moon, Sun } from "lucide-react";
+import { Droplets, Menu, Moon, Sun, ChevronDown, Calculator, Globe, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 import { Link, useLocation } from "wouter";
 
 export default function Header() {
   const [isDark, setIsDark] = useState(false);
   const [location] = useLocation();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [currentLanguage, setCurrentLanguage] = useState('English');
 
   useEffect(() => {
     const isDarkMode = document.documentElement.classList.contains('dark');
@@ -26,6 +34,14 @@ export default function Header() {
     }
   }, []);
 
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+    setIsMobileMenuOpen(false);
+  };
+
   return (
     <header className="border-b bg-background/80 backdrop-blur-sm sticky top-0 z-50">
       <div className="container mx-auto px-4 py-4">
@@ -43,27 +59,90 @@ export default function Header() {
           </Link>
 
           <div className="flex items-center gap-4">
-            <nav className="hidden md:flex items-center gap-1">
-              <Link href="/">
-                <Button
-                  variant={location === '/' ? 'default' : 'ghost'}
-                  size="sm"
-                  data-testid="button-home"
-                >
-                  Home
-                </Button>
-              </Link>
-              <Link href="/calculator">
-                <Button
-                  variant={location.startsWith('/calculator') ? 'default' : 'ghost'}
-                  size="sm"
-                  data-testid="button-calculator"
-                >
-                  Calculator
-                </Button>
-              </Link>
+            {/* Desktop Navigation */}
+            <nav className="hidden lg:flex items-center gap-1">
+              <Button
+                variant={location === '/' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => scrollToSection('hero')}
+                data-testid="button-home"
+              >
+                Home
+              </Button>
+              
+              {/* Calculator Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="gap-1"
+                    data-testid="button-calculator-dropdown"
+                  >
+                    <Calculator className="w-4 h-4" />
+                    Calculator
+                    <ChevronDown className="w-3 h-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                  <DropdownMenuItem onClick={() => scrollToSection('calculator')}>
+                    <Droplets className="w-4 h-4 mr-2" />
+                    Rainwater Harvesting
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => scrollToSection('calculator')}>
+                    <Calculator className="w-4 h-4 mr-2" />
+                    Artificial Recharge
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => scrollToSection('about')}
+                data-testid="button-about"
+              >
+                About
+              </Button>
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => scrollToSection('testimonials')}
+                data-testid="button-testimonials"
+              >
+                Testimonials
+              </Button>
             </nav>
 
+            {/* Language Switcher */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="gap-1 hidden md:flex"
+                  data-testid="button-language"
+                >
+                  <Globe className="w-4 h-4" />
+                  {currentLanguage}
+                  <ChevronDown className="w-3 h-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setCurrentLanguage('English')}>
+                  English
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setCurrentLanguage('हिंदी')}>
+                  हिंदी (Hindi)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setCurrentLanguage('Regional')}>
+                  Regional
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Theme Toggle */}
             <Button
               variant="ghost"
               size="icon"
@@ -73,16 +152,95 @@ export default function Header() {
               {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </Button>
 
+            {/* Mobile Menu Button */}
             <Button
               variant="ghost"
               size="icon"
-              className="md:hidden"
+              className="lg:hidden"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               data-testid="button-menu"
             >
-              <Menu className="w-4 h-4" />
+              {isMobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
             </Button>
           </div>
         </nav>
+        
+        {/* Mobile Menu */}
+        {isMobileMenuOpen && (
+          <div className="lg:hidden border-t bg-background/95 backdrop-blur-sm">
+            <nav className="container mx-auto px-4 py-4 space-y-2">
+              <Button
+                variant="ghost"
+                className="w-full justify-start"
+                onClick={() => scrollToSection('hero')}
+              >
+                Home
+              </Button>
+              
+              <div className="space-y-1">
+                <p className="text-sm font-medium px-4 py-2 text-muted-foreground">Calculator</p>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start pl-8"
+                  onClick={() => scrollToSection('calculator')}
+                >
+                  <Droplets className="w-4 h-4 mr-2" />
+                  Rainwater Harvesting
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start pl-8"
+                  onClick={() => scrollToSection('calculator')}
+                >
+                  <Calculator className="w-4 h-4 mr-2" />
+                  Artificial Recharge
+                </Button>
+              </div>
+              
+              <Button
+                variant="ghost"
+                className="w-full justify-start"
+                onClick={() => scrollToSection('about')}
+              >
+                About
+              </Button>
+              
+              <Button
+                variant="ghost"
+                className="w-full justify-start"
+                onClick={() => scrollToSection('testimonials')}
+              >
+                Testimonials
+              </Button>
+              
+              <div className="pt-2 border-t">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Language</span>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm" className="gap-1">
+                        <Globe className="w-4 h-4" />
+                        {currentLanguage}
+                        <ChevronDown className="w-3 h-3" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => setCurrentLanguage('English')}>
+                        English
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setCurrentLanguage('हिंदी')}>
+                        हिंदी (Hindi)
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setCurrentLanguage('Regional')}>
+                        Regional
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+            </nav>
+          </div>
+        )}
       </div>
     </header>
   );

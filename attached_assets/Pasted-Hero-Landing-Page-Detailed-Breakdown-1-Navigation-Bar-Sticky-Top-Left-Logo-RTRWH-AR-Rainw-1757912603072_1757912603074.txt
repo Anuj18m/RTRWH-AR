@@ -1,0 +1,120 @@
+Hero Landing Page – Detailed Breakdown
+1. Navigation Bar (Sticky Top)
+
+Left → Logo: RTRWH/AR | Rainwater Assistant
+
+Center/Right →
+
+Home
+
+Calculator (dropdown: Rainwater Harvesting | Artificial Recharge)
+
+About
+
+Testimonials
+
+Language Switch (dropdown: English, Hindi, Regional)
+
+(Optional) Dark Mode Toggle
+
+2. Hero Section (First Fold)
+
+Background: Full-width image/illustration (rooftop + rain + tank OR animated wave pattern).
+
+Content (centered, bold):
+
+Main Heading (H1):
+“Smart Rainwater Harvesting for Every Indian Home”
+
+Sub-heading:
+“Government-compliant, data-driven, and simple to use.”
+
+Buttons (side by side):
+
+Start Calculator (primary CTA – scrolls/jumps to form)
+
+Learn More (secondary CTA – scrolls to About section)
+
+3. Quick Product Info (3 Columns)
+
+Each as a card with icon + text:
+
+📊 Rainwater Potential → “Know how much rainwater you can capture annually.”
+
+💧 Artificial Recharge → “Design recharge pits and evaluate feasibility.”
+
+💰 Cost & Savings → “Get budget options with ROI analysis.”
+
+(Clicking each card can scroll down or open modal with more detail.)
+
+4. About / Why This Tool
+
+Heading: “Built for Indian Conditions”
+
+Content (2-column layout):
+
+Left: Short para (100 words) about methodology (CGWB guidelines + Indian rainfall + scientific design).
+
+Right: Small graphic (India map with rainclouds / illustration of tank).
+
+CTA link: Read More → (to full About page).
+
+5. Testimonials / Trust Section
+
+Heading: “What Users Say”
+
+Layout: Carousel or 3 side-by-side cards with quotes.
+
+Example:
+
+“Simple and accurate — helped my society plan rainwater harvesting.”
+
+“Love the cost breakdown, makes decisions easy.”
+
+“Finally, a tool that’s practical and Indian-context aware.”
+
+Below testimonials: Row of trust badges/logos:
+
+✔ Government compliant
+
+✔ Location-specific data
+
+✔ Scientific methodology
+
+6. Language Preferences (Highlight)
+
+Positioned clearly (either in navbar or floating button).
+
+Toggle between English | Hindi | Regional (later expansion).
+
+Language affects headings, CTAs, and form labels dynamically.
+
+7. Footer Hero / Final CTA
+
+Centered Section with Tagline:
+“Every Drop Counts. Start Saving Rainwater Today.”
+
+Button:
+Calculate My Rainwater Potential →
+
+🎨 Design / UI Notes
+
+Primary Color: Teal/Blue (consistent with your calculator UI).
+
+Secondary Accent: Green (for eco/sustainability vibe).
+
+Typography: Same clean sans-serif as calculator.
+
+Layout: Grid & card-based → matches existing UI consistency.
+
+Responsiveness: Hero section shrinks to stacked layout on mobile.
+
+👉 Basically, think of this page as a “entry lobby” before the calculator. Users instantly know:
+
+What the tool is.
+
+Why it matters.
+
+That it’s trustworthy.
+
+How to get started (CTA).
