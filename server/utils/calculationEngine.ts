@@ -14,6 +14,122 @@ const coefficients: Coefficients = coefficientsData as Coefficients;
  */
 export class CalculationEngine {
   /**
+   * Calculate water quality factor based on environmental conditions
+   */
+  private calculateQualityFactor(userInput: UserInput): number {
+    const advancedFactors = coefficients.advancedFactors;
+    let qualityFactor = advancedFactors.qualityFactors.environment[userInput.environment];
+    
+    // Adjust for bird nesting
+    if (userInput.birdNesting) {
+      qualityFactor *= advancedFactors.qualityFactors.birdNesting;
+    }
+    
+    return qualityFactor;
+  }
+
+  /**
+   * Get season based on month index (0-11)
+   */
+  private getSeason(monthIndex: number): string {
+    if (monthIndex >= 2 && monthIndex <= 4) return 'premonsoon'; // Mar-May
+    if (monthIndex >= 5 && monthIndex <= 8) return 'monsoon';    // Jun-Sep
+    if (monthIndex >= 9 && monthIndex <= 10) return 'postmonsoon'; // Oct-Nov
+    return 'winter'; // Dec-Feb
+  }
+
+  /**
+   * Calculate monthly seasonal demand variation
+   */
+  private calculateMonthlySeasonalDemand(purpose: string): number[] {
+    const multipliers = coefficients.advancedFactors.seasonalDemandMultipliers;
+    return multipliers[purpose as keyof typeof multipliers] || multipliers.Domestic;
+  }
+
+  /**
+   * Calculate dry period storage requirement
+   */
+  private calculateDryPeriodStorage(monthlyPotential: number[], householdDemand: number): number {
+    const monthlyDemand = householdDemand / 12;
+    let maxDeficit = 0;
+    let cumulativeDeficit = 0;
+    
+    // Find the maximum cumulative deficit period
+    for (let i = 0; i < monthlyPotential.length; i++) {
+      const monthlyDeficit = monthlyDemand - monthlyPotential[i];
+      cumulativeDeficit = Math.max(0, cumulativeDeficit + monthlyDeficit);
+      maxDeficit = Math.max(maxDeficit, cumulativeDeficit);
+    }
+    
+    return Math.round(maxDeficit);
+  }
+
+  /**
+   * Calculate monsoon surplus that can be stored
+   */
+  private calculateMonsoonSurplus(monthlyPotential: number[], householdDemand: number): number {
+    const monthlyDemand = householdDemand / 12;
+    const monsoonMonths = [5, 6, 7, 8]; // June to September
+    
+    let totalSurplus = 0;
+    for (const monthIndex of monsoonMonths) {
+      const surplus = monthlyPotential[monthIndex] - monthlyDemand;
+      if (surplus > 0) {
+        totalSurplus += surplus;
+      }
+    }
+    
+    return Math.round(totalSurplus);
+  }
+
+  /**
+   * Calculate filtration system cost based on water quality needs
+   */
+  private calculateFiltrationCost(userInput: UserInput): number {
+    let baseCost = 5000; // Basic filtration
+    
+    if (userInput.purpose === 'Domestic') {
+      baseCost = 12000; // UV + RO system
+    }
+    
+    if (userInput.environment === 'Industrial') {
+      baseCost *= 1.5; // Enhanced filtration for industrial areas
+    }
+    
+    if (userInput.birdNesting) {
+      baseCost *= 1.2; // Additional pre-filtration
+    }
+    
+    return Math.round(baseCost);
+  }
+
+  /**
+   * Calculate overall system efficiency
+   */
+  private calculateSystemEfficiency(userInput: UserInput, tankCapacity: number): number {
+    let efficiency = 0.85; // Base efficiency
+    
+    // Tank size efficiency curve
+    if (tankCapacity < 3000) efficiency *= 0.9;
+    else if (tankCapacity > 10000) efficiency *= 1.05;
+    
+    // Roof type efficiency
+    const roofEfficiency = {
+      'RCC': 0.95,
+      'GI': 1.0,
+      'Asbestos': 0.85,
+      'Tiles': 0.90
+    };
+    efficiency *= roofEfficiency[userInput.roofType as keyof typeof roofEfficiency];
+    
+    // Environmental impact
+    if (userInput.environment === 'Industrial') efficiency *= 0.92;
+    if (userInput.birdNesting) efficiency *= 0.95;
+    
+    return Math.min(efficiency, 0.95); // Cap at 95%
+  }
+
+  /**
    * Find city data by pincode or city name
    */
   private findCityData(location: string, pincode: string): CityData | null {
@@ -35,18 +151,33 @@ export class CalculationEngine {
   }
 
   /**
-   * Calculate Rainwater Harvesting Potential
-   * Formula: RHP = Rainfall (mm) × Roof Area (m²) × Runoff Coefficient
+   * Calculate Enhanced Rainwater Harvesting Potential
+   * Formula: RHP = Rainfall × Roof Area × Runoff Coefficient × Quality Factor × Seasonal Factor
    */
   private calculateRainwaterPotential(userInput: UserInput, cityData: CityData): {
     annual: number;
     monthly: number[];
   } {
     const runoffCoeff = coefficients.runoffCoefficients[userInput.roofType];
+    const qualityFactor = this.calculateQualityFactor(userInput);
+    const evaporationLoss = coefficients.advancedFactors.evaporationLoss[cityData.region];
     
-    const monthlyPotential = cityData.monthlyRainfall.map(rainfall => 
-      Math.round(userInput.roofArea * rainfall * runoffCoeff)
-    );
+    const monthlyPotential = cityData.monthlyRainfall.map((rainfall, index) => {
+      // Determine season for seasonal variation
+      const season = this.getSeason(index);
+      const seasonalFactor = coefficients.advancedFactors.seasonalVariation[season as keyof typeof coefficients.advancedFactors.seasonalVariation];
+      
+      // Calculate raw potential
+      const rawPotential = userInput.roofArea * rainfall * runoffCoeff;
+      
+      // Apply quality and seasonal adjustments
+      const adjustedPotential = rawPotential * qualityFactor * seasonalFactor;
+      
+      // Account for evaporation loss
+      const finalPotential = adjustedPotential * (1 - evaporationLoss);
+      
+      return Math.round(finalPotential);
+    });
     
     const annualPotential = monthlyPotential.reduce((sum, month) => sum + month, 0);
     
@@ -57,41 +188,76 @@ export class CalculationEngine {
   }
 
   /**
-   * Calculate Household Water Demand
-   * Formula: Demand = Number of people × Daily consumption × 365 days
+   * Calculate Enhanced Household Water Demand with Monthly Variation
+   * Formula: Demand = Number of people × Daily consumption × Days in month × Purpose Factor × Monthly Seasonal Factor
    */
   private calculateHouseholdDemand(userInput: UserInput): number {
     const dailyConsumption = coefficients.waterRates.domesticConsumption;
     
     // Adjust consumption based on purpose
-    let adjustmentFactor = 1.0;
-    if (userInput.purpose === 'Irrigation') adjustmentFactor = 1.5;
-    if (userInput.purpose === 'Industrial') adjustmentFactor = 2.0;
+    let purposeFactor = 1.0;
+    if (userInput.purpose === 'Irrigation') purposeFactor = 1.8; // Enhanced for agricultural needs
+    if (userInput.purpose === 'Industrial') purposeFactor = 2.3; // More realistic industrial usage
     
-    return Math.round(userInput.dwellers * dailyConsumption * 365 * adjustmentFactor);
+    // Calculate monthly seasonal demand variation
+    const monthlyMultipliers = this.calculateMonthlySeasonalDemand(userInput.purpose);
+    const daysInMonths = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    
+    let totalAnnualDemand = 0;
+    for (let i = 0; i < 12; i++) {
+      const monthlyDemand = userInput.dwellers * dailyConsumption * daysInMonths[i] * purposeFactor * monthlyMultipliers[i];
+      totalAnnualDemand += monthlyDemand;
+    }
+    
+    return Math.round(totalAnnualDemand);
   }
 
   /**
-   * Calculate Storage Tank Sizing
-   * Based on monsoon collection pattern and household demand
+   * Calculate Optimized Storage Tank Sizing
+   * Advanced algorithm considering dry periods, peak demand, and storage efficiency
    */
-  private calculateStorageTank(rainwaterPotential: number, monthlyPotential: number[], householdDemand: number): {
+  private calculateStorageTank(rainwaterPotential: number, monthlyPotential: number[], householdDemand: number, cityData: CityData): {
     capacity: number;
     dimensions: { diameter: number; height: number };
   } {
-    // Tank capacity = 30-45 days of household demand OR 20% of annual potential (whichever is smaller)
-    const demandBasedCapacity = Math.round((householdDemand / 365) * 35); // 35 days
-    const potentialBasedCapacity = Math.round(rainwaterPotential * 0.2); // 20% of annual
+    // Analyze dry period to determine minimum storage needed
+    const dryPeriodStorage = this.calculateDryPeriodStorage(monthlyPotential, householdDemand);
     
-    const tankCapacity = Math.min(demandBasedCapacity, potentialBasedCapacity, 15000); // Max 15,000L
+    // Calculate monsoon surplus that can be stored
+    const monsoonSurplus = this.calculateMonsoonSurplus(monthlyPotential, householdDemand);
     
-    // Calculate cylindrical tank dimensions (assuming height = 2m)
-    const tankHeight = 2.0; // meters
+    // Determine optimal tank size based on multiple factors
+    const demandBasedCapacity = Math.round((householdDemand / 365) * 45); // Increased to 45 days
+    const potentialBasedCapacity = Math.round(rainwaterPotential * 0.25); // Increased to 25%
+    const dryPeriodBasedCapacity = dryPeriodStorage;
+    const monsoonBasedCapacity = Math.min(monsoonSurplus, 20000); // Cap at 20,000L
+    
+    // Choose the most appropriate capacity
+    let tankCapacity = Math.max(
+      Math.min(demandBasedCapacity, potentialBasedCapacity),
+      dryPeriodBasedCapacity * 0.8, // 80% of dry period need
+      3000 // Minimum 3000L for effectiveness
+    );
+    
+    // Consider monsoon surplus for final sizing, but ensure minimum is maintained
+    tankCapacity = Math.max(3000, Math.min(tankCapacity, monsoonBasedCapacity));
+    
+    // Calculate optimized tank dimensions (height varies for efficiency)
     const tankVolume = tankCapacity / 1000; // cubic meters
-    const tankDiameter = Math.sqrt((tankVolume * 4) / (Math.PI * tankHeight));
+    let tankHeight, tankDiameter;
+    
+    if (tankVolume <= 8) {
+      tankHeight = 2.0; // Standard height for smaller tanks
+    } else if (tankVolume <= 20) {
+      tankHeight = 2.5; // Taller for medium tanks
+    } else {
+      tankHeight = 3.0; // Maximum practical height
+    }
+    
+    tankDiameter = Math.sqrt((tankVolume * 4) / (Math.PI * tankHeight));
     
     return {
-      capacity: Math.max(tankCapacity, 2000), // Minimum 2000L
+      capacity: Math.round(tankCapacity),
       dimensions: {
         diameter: Number(tankDiameter.toFixed(1)),
         height: tankHeight
@@ -144,18 +310,23 @@ export class CalculationEngine {
   }
 
   /**
-   * Calculate System Costs
+   * Calculate Advanced System Costs with Lifecycle Analysis
    */
-  private calculateCosts(userInput: UserInput, tankCapacity: number, hasRecharge: boolean): {
+  private calculateCosts(userInput: UserInput, rainwaterPotential: number, tankCapacity: number, hasRecharge: boolean): {
     systemCost: { low: number; medium: number; high: number };
     annualSavings: number;
     paybackPeriod: number;
+    lifeCycleCost: number;
+    maintenanceCost: number;
   } {
+    // Enhanced cost calculation
     const baseCost = userInput.roofArea * coefficients.costFactors.baseCostPerSqm;
-    const tankCost = tankCapacity * 0.8; // ₹0.8 per liter capacity
-    const rechargeCost = hasRecharge ? userInput.roofArea * 150 : 0;
+    const tankCost = tankCapacity * (tankCapacity > 10000 ? 0.75 : 0.85); // Economies of scale
+    const rechargeCost = hasRecharge ? userInput.roofArea * 180 : 0; // Updated recharge cost
+    const pumpCost = tankCapacity > 5000 ? 8000 : 4500; // Pump system cost
+    const filtrationCost = this.calculateFiltrationCost(userInput);
     
-    const totalBaseCost = baseCost + tankCost + rechargeCost;
+    const totalBaseCost = baseCost + tankCost + rechargeCost + pumpCost + filtrationCost;
     
     const systemCost = {
       low: Math.round(totalBaseCost * coefficients.costFactors.budgetMultipliers.Low),
@@ -163,18 +334,31 @@ export class CalculationEngine {
       high: Math.round(totalBaseCost * coefficients.costFactors.budgetMultipliers.High)
     };
     
-    // Calculate savings based on water bill reduction
+    // Fixed savings calculation using actual rainwaterPotential
     const householdDemand = this.calculateHouseholdDemand(userInput);
     const municipalRate = coefficients.waterRates.municipalRate;
-    const maxSavableWater = Math.min(householdDemand, tankCapacity * 10); // Assume 10 refills per year
-    const annualSavings = Math.round(maxSavableWater * municipalRate);
+    const systemEfficiency = this.calculateSystemEfficiency(userInput, tankCapacity);
+    const usableWater = Math.min(rainwaterPotential * systemEfficiency, householdDemand);
     
-    const paybackPeriod = Math.round(systemCost.medium / Math.max(annualSavings, 1));
+    // Include water quality premium (RO water cost saving)
+    const qualityPremium = userInput.purpose === 'Domestic' ? 0.015 : 0.005;
+    const annualSavings = Math.round(usableWater * (municipalRate + qualityPremium));
+    
+    // Lifecycle cost analysis
+    const advancedFactors = coefficients.advancedFactors;
+    const systemLife = advancedFactors.lifeCycleFactors.system_life;
+    const annualMaintenance = systemCost.medium * advancedFactors.maintenanceCosts.annual;
+    const totalMaintenanceCost = annualMaintenance * systemLife;
+    const lifeCycleCost = systemCost.medium + totalMaintenanceCost;
+    
+    const paybackPeriod = Math.round(systemCost.medium / Math.max(annualSavings - annualMaintenance, 1));
     
     return {
       systemCost,
       annualSavings,
-      paybackPeriod: Math.min(paybackPeriod, 20) // Cap at 20 years
+      paybackPeriod: Math.min(paybackPeriod, 25),
+      lifeCycleCost,
+      maintenanceCost: Math.round(annualMaintenance)
     };
   }
 
@@ -305,12 +489,12 @@ export class CalculationEngine {
     
     // Storage system
     const { capacity: tankCapacity, dimensions: tankDimensions } = this.calculateStorageTank(
-      rainwaterPotential, monthlyPotential, householdDemand
+      rainwaterPotential, monthlyPotential, householdDemand, cityData
     );
     
     // Cost analysis
-    const { systemCost, annualSavings, paybackPeriod } = this.calculateCosts(
-      userInput, tankCapacity, calculationType === 'recharge'
+    const { systemCost, annualSavings, paybackPeriod, lifeCycleCost, maintenanceCost } = this.calculateCosts(
+      userInput, rainwaterPotential, tankCapacity, calculationType === 'recharge'
     );
     
     // Feasibility analysis
@@ -330,6 +514,8 @@ export class CalculationEngine {
       systemCost,
       annualSavings,
       paybackPeriod,
+      lifeCycleCost,
+      maintenanceCost,
       feasibilityScore,
       feasibilityLevel,
       recommendations,

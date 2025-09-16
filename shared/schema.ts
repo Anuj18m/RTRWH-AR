@@ -53,6 +53,8 @@ export const calculationResultsSchema = z.object({
   }),
   annualSavings: z.number(), // rupees
   paybackPeriod: z.number(), // years
+  lifeCycleCost: z.number(), // total lifecycle cost in rupees
+  maintenanceCost: z.number(), // annual maintenance cost in rupees
   
   // Feasibility
   feasibilityScore: z.number(), // 0-100
@@ -105,6 +107,51 @@ export const coefficientsSchema = z.object({
   waterRates: z.object({
     municipalRate: z.number(), // rupees per liter
     domesticConsumption: z.number() // liters per person per day
+  }),
+  advancedFactors: z.object({
+    evaporationLoss: z.object({
+      North: z.number(),
+      South: z.number(),
+      East: z.number(),
+      West: z.number(),
+      Central: z.number(),
+      Northeast: z.number()
+    }),
+    qualityFactors: z.object({
+      environment: z.object({
+        Residential: z.number(),
+        Industrial: z.number(),
+        Agricultural: z.number()
+      }),
+      roofAge: z.object({
+        new: z.number(),
+        moderate: z.number(),
+        old: z.number()
+      }),
+      birdNesting: z.number()
+    }),
+    seasonalVariation: z.object({
+      premonsoon: z.number(),
+      monsoon: z.number(),
+      postmonsoon: z.number(),
+      winter: z.number()
+    }),
+    seasonalDemandMultipliers: z.object({
+      Domestic: z.array(z.number()).length(12),
+      Irrigation: z.array(z.number()).length(12),
+      Industrial: z.array(z.number()).length(12)
+    }),
+    maintenanceCosts: z.object({
+      annual: z.number(),
+      deep_cleaning: z.number(),
+      filter_replacement: z.number()
+    }),
+    lifeCycleFactors: z.object({
+      system_life: z.number(),
+      tank_life: z.number(),
+      pump_life: z.number(),
+      filter_life: z.number()
+    })
   })
 });
 
