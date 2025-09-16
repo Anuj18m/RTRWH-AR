@@ -11,6 +11,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from "@/components/ui/form";
 import { MapPin, Home, Users, DollarSign, Calculator } from "lucide-react";
+import { handleBackNavigation } from "@/lib/navigation";
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -78,7 +79,12 @@ export default function UserInputForm({ type, onSubmit, onBack }: UserInputFormP
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="mb-8">
-        <Button variant="ghost" onClick={onBack} className="mb-4" data-testid="button-back">
+        <Button 
+          variant="ghost" 
+          onClick={() => handleBackNavigation(onBack, 'UserInputForm')} 
+          className="mb-4" 
+          data-testid="button-back"
+        >
           ← Back to Selection
         </Button>
         <h1 className="text-3xl font-semibold mb-2">
@@ -452,11 +458,8 @@ export default function UserInputForm({ type, onSubmit, onBack }: UserInputFormP
             />
           </Card>
 
-          <div className="flex gap-4">
-            <Button type="button" variant="outline" onClick={onBack} size="lg" data-testid="button-back-bottom">
-              Back
-            </Button>
-            <Button type="submit" size="lg" className="flex-1" data-testid="button-calculate">
+          <div className="flex justify-end">
+            <Button type="submit" size="lg" className="px-12" data-testid="button-calculate">
               Calculate {type === 'rainwater' ? 'Rainwater Potential' : 'Recharge Capacity'}
             </Button>
           </div>

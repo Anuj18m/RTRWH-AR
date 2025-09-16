@@ -8,6 +8,7 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { Link, useLocation } from "wouter";
+import { scrollToSection, type SectionId } from "@/lib/navigation";
 
 export default function Header() {
   const [isDark, setIsDark] = useState(false);
@@ -34,11 +35,8 @@ export default function Header() {
     }
   }, []);
 
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
+  const handleSectionScroll = (sectionId: SectionId) => {
+    scrollToSection(sectionId);
     setIsMobileMenuOpen(false);
   };
 
@@ -64,7 +62,7 @@ export default function Header() {
               <Button
                 variant={location === '/' ? 'default' : 'ghost'}
                 size="sm"
-                onClick={() => scrollToSection('hero')}
+                onClick={() => handleSectionScroll('hero')}
                 data-testid="button-home"
               >
                 Home
@@ -85,11 +83,11 @@ export default function Header() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start">
-                  <DropdownMenuItem onClick={() => scrollToSection('calculator')}>
+                  <DropdownMenuItem onClick={() => handleSectionScroll('calculator')}>
                     <Droplets className="w-4 h-4 mr-2" />
                     Rainwater Harvesting
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => scrollToSection('calculator')}>
+                  <DropdownMenuItem onClick={() => handleSectionScroll('calculator')}>
                     <Calculator className="w-4 h-4 mr-2" />
                     Artificial Recharge
                   </DropdownMenuItem>
@@ -99,7 +97,7 @@ export default function Header() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => scrollToSection('about')}
+                onClick={() => handleSectionScroll('about')}
                 data-testid="button-about"
               >
                 About
@@ -108,7 +106,7 @@ export default function Header() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => scrollToSection('testimonials')}
+                onClick={() => handleSectionScroll('testimonials')}
                 data-testid="button-testimonials"
               >
                 Testimonials
@@ -172,7 +170,7 @@ export default function Header() {
               <Button
                 variant="ghost"
                 className="w-full justify-start"
-                onClick={() => scrollToSection('hero')}
+                onClick={() => handleSectionScroll('hero')}
               >
                 Home
               </Button>
@@ -182,7 +180,7 @@ export default function Header() {
                 <Button
                   variant="ghost"
                   className="w-full justify-start pl-8"
-                  onClick={() => scrollToSection('calculator')}
+                  onClick={() => handleSectionScroll('calculator')}
                 >
                   <Droplets className="w-4 h-4 mr-2" />
                   Rainwater Harvesting
@@ -190,7 +188,7 @@ export default function Header() {
                 <Button
                   variant="ghost"
                   className="w-full justify-start pl-8"
-                  onClick={() => scrollToSection('calculator')}
+                  onClick={() => handleSectionScroll('calculator')}
                 >
                   <Calculator className="w-4 h-4 mr-2" />
                   Artificial Recharge
@@ -200,7 +198,7 @@ export default function Header() {
               <Button
                 variant="ghost"
                 className="w-full justify-start"
-                onClick={() => scrollToSection('about')}
+                onClick={() => handleSectionScroll('about')}
               >
                 About
               </Button>
@@ -208,7 +206,7 @@ export default function Header() {
               <Button
                 variant="ghost"
                 className="w-full justify-start"
-                onClick={() => scrollToSection('testimonials')}
+                onClick={() => handleSectionScroll('testimonials')}
               >
                 Testimonials
               </Button>

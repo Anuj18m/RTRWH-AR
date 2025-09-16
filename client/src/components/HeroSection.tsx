@@ -1,29 +1,16 @@
 import { ArrowRight, Droplets, Sprout, BarChart3, IndianRupee, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { scrollToSection, type CalculationType } from "@/lib/navigation";
 
 interface HeroSectionProps {
-  onSelectPath: (path: 'rainwater' | 'recharge') => void;
+  onSelectPath: (path: CalculationType) => void;
 }
 
 export default function HeroSection({ onSelectPath }: HeroSectionProps) {
-  const handlePathSelect = (path: 'rainwater' | 'recharge') => {
+  const handlePathSelect = (path: CalculationType) => {
     console.log(`Selected path: ${path}`);
     onSelectPath(path);
-  };
-
-  const scrollToCalculator = () => {
-    const element = document.getElementById('calculator');
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
-  const scrollToAbout = () => {
-    const element = document.getElementById('about');
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
   };
 
   return (
@@ -47,7 +34,7 @@ export default function HeroSection({ onSelectPath }: HeroSectionProps) {
             <Button
               size="lg"
               className="px-8 py-6 text-lg font-semibold hover:scale-105 transition-transform"
-              onClick={scrollToCalculator}
+              onClick={() => scrollToSection('calculator')}
             >
               Start Calculator
               <ArrowRight className="w-5 h-5 ml-2" />
@@ -56,7 +43,7 @@ export default function HeroSection({ onSelectPath }: HeroSectionProps) {
               variant="outline"
               size="lg"
               className="px-8 py-6 text-lg font-semibold hover:scale-105 transition-transform"
-              onClick={scrollToAbout}
+              onClick={() => scrollToSection('about')}
             >
               Learn More
             </Button>

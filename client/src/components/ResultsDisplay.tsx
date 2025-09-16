@@ -12,6 +12,7 @@ import {
   Download,
   ArrowLeft
 } from "lucide-react";
+import { handleBackNavigation, handlePDFDownload } from "@/lib/navigation";
 
 interface CalculationResults {
   // Rainwater Harvesting Calculations
@@ -83,7 +84,12 @@ export default function ResultsDisplay({ type, results, userInputs, onBack, onDo
     <div className="container mx-auto px-4 py-8 max-w-6xl">
       {/* Header */}
       <div className="mb-8">
-        <Button variant="ghost" onClick={onBack} className="mb-4" data-testid="button-back">
+        <Button 
+          variant="ghost" 
+          onClick={() => handleBackNavigation(onBack, 'ResultsDisplay')} 
+          className="mb-4" 
+          data-testid="button-back"
+        >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Form
         </Button>
@@ -96,7 +102,11 @@ export default function ResultsDisplay({ type, results, userInputs, onBack, onDo
               Analysis for {userInputs?.location} - {userInputs?.name}
             </p>
           </div>
-          <Button onClick={onDownloadPDF} size="lg" data-testid="button-download-pdf">
+          <Button 
+            onClick={() => handlePDFDownload(onDownloadPDF)} 
+            size="lg" 
+            data-testid="button-download-pdf"
+          >
             <Download className="w-4 h-4 mr-2" />
             Download PDF Report
           </Button>
