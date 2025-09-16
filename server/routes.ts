@@ -191,10 +191,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const pdfBuffer = Buffer.from(doc.output('arraybuffer'));
       
       // Set headers for PDF download
+      // Sanitize filename to prevent header injection
+      const sanitizedName = userData.name
+        .replace(/[^a-zA-Z0-9\s-_]/g, '') // Remove unsafe characters
+        .replace(/\s+/g, '-') // Replace spaces with hyphens
+        .substring(0, 50); // Limit length
+      
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader(
         'Content-Disposition', 
-        `attachment; filename="${type}-analysis-report-${userData.name.replace(/\s+/g, '-')}.pdf"`
+        `attachment; filename="${type}-analysis-report-${sanitizedName}.pdf"`
       );
       res.setHeader('Content-Length', pdfBuffer.length);
       
