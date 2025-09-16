@@ -1,5 +1,8 @@
-import { type UserSubmission, type UserInput, type CalculationResults } from "@shared/schema";
+import { type UserSubmission, type UserInput, type CalculationResults, userSubmissions, type InsertUserSubmission } from "@shared/schema";
 import { randomUUID } from "crypto";
+import { drizzle } from "drizzle-orm/node-postgres";
+import { Pool } from "pg";
+import { eq, desc } from "drizzle-orm";
 
 // Storage interface for rainwater harvesting calculations
 export interface IStorage {
@@ -8,9 +11,7 @@ export interface IStorage {
   getRecentSubmissions(limit?: number): Promise<UserSubmission[]>;
 }
 
-// Database storage implementation (disabled for now due to TypeScript config issues)
-// TODO: Fix drizzle-neon TypeScript configuration and re-enable
-/*
+// Database storage implementation
 export class DatabaseStorage implements IStorage {
   private db;
 
@@ -18,8 +19,10 @@ export class DatabaseStorage implements IStorage {
     if (!process.env.DATABASE_URL) {
       throw new Error("DATABASE_URL environment variable is required");
     }
-    const sql = neon(process.env.DATABASE_URL);
-    this.db = drizzle(sql);
+    const pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+    });
+    this.db = drizzle(pool);
   }
 
   async saveSubmission(userInputs: UserInput, calculationType: 'rainwater' | 'recharge', results: CalculationResults): Promise<UserSubmission> {
@@ -49,7 +52,6 @@ export class DatabaseStorage implements IStorage {
     return submissions;
   }
 }
-*/
 
 // Fallback in-memory storage for development
 export class MemStorage implements IStorage {
@@ -84,8 +86,8 @@ export class MemStorage implements IStorage {
   }
 }
 
-// Use memory storage for now (database configuration can be improved later)
-const storage: IStorage = new MemStorage();
-console.log("⚠ Using in-memory storage (development mode)");
+// Use database storage for permanent data persistence
+const storage: IStorage = new DatabaseStorage();
+console.log("✅ Using PostgreSQL database storage");
 
 export { storage };
